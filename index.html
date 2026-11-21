@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebHub — WebCord & Play Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #1E1F22;
+      color: #F2F3F5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 상단 앱 전환 네비게이션 */
+    .top-switcher {
+      height: 54px;
+      background: #111214;
+      border-bottom: 1px solid #2B2D31;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #FFF;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mode-btn {
+      background: #2B2D31;
+      color: #B5BAC1;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active-discord {
+      background: #5865F2;
+      color: #FFF;
+    }
+
+    .mode-btn.active-play {
+      background: #01875F;
+      color: #FFF;
+    }
+
+    /* 메인 앱 컨테이너 */
+    .app-view {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+    }
+    .app-view.active {
+      display: flex;
+    }
+
+    /* ============================
+       1. WebCord (디스코드 스타일 UI)
+       ============================ */
+    .server-bar {
+      width: 68px;
+      background: #1E1F22;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 10px;
+      flex-shrink: 0;
+      border-right: 1px solid #141517;
+    }
+
+    .server-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #313338;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      transition: border-radius 0.2s, background 0.2s;
+      user-select: none;
+    }
+
+    .server-icon:hover, .server-icon.active {
+      border-radius: 14px;
+      background: #5865F2;
+    }
+
+    .channel-sidebar {
+      width: 220px;
+      background: #2B2D31;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .server-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1F2023;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .channel-list {
+      flex: 1;
+      padding: 12px 8px;
+      overflow-y: auto;
+    }
+
+    .channel-category {
+      font-size: 11px;
+      font-weight: 700;
+      color: #949BA4;
+      padding: 4px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .add-ch-btn {
+      background: none;
+      border: none;
+      color: #949BA4;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .add-ch-btn:hover { color: #FFF; }
+
+    .channel-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: #949BA4;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .channel-item:hover { background: #35373C; color: #DBDEE1; }
+    .channel-item.active { background: #404249; color: #FFF; font-weight: 500; }
+
+    .user-profile-bar {
+      height: 54px;
+      background: #232428;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      overflow: hidden;
+    }
+
+    .avatar-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #5865F2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .nick-btn {
+      background: #383A40;
+      border: none;
+      color: #DBDEE1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .chat-main {
+      flex: 1;
+      background: #313338;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .chat-header {
+      height: 48px;
+      padding: 0 16px;
+      border-bottom: 1px solid #26272B;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+    }
+
+    .messages-area {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .msg-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .msg-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #5865F2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .msg-content-wrap { min-width: 0; }
+    .msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+    .msg-author { font-weight: 700; font-size: 14px; color: #FFF; }
+    .msg-time { font-size: 11px; color: #949BA4; }
+    .msg-text { font-size: 14px; color: #DBDEE1; word-break: break-word; line-height: 1.5; }
+
+    .chat-input-box {
+      padding: 12px 16px 18px;
+    }
+
+    .chat-input-inner {
+      background: #383A40;
+      border-radius: 10px;
+      padding: 6px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-input-inner input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #F2F3F5;
+      font-size: 14px;
+      padding: 8px 4px;
+      outline: none;
+    }
+
+    .send-msg-btn {
+      background: #5865F2;
+      color: #FFF;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* ============================
+       2. Play Hub (플레이스토어 스타일 UI)
+       ============================ */
+    #view-play {
+      flex-direction: column;
+      background: #14171A;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .play-container {
+      max-width: 980px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .play-search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .play-search-input {
+      flex: 1;
+      min-width: 220px;
+      background: #202429;
+      border: 1px solid #323840;
+      border-radius: 24px;
+      padding: 12px 20px;
+      color: #FFF;
+      font-size: 14px;
+      outline: none;
+    }
+    .play-search-input:focus { border-color: #00E676; }
+
+    .play-add-btn {
+      background: #01875F;
+      color: #FFF;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 24px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .play-chips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .play-chip {
+      background: #202429;
+      border: 1px solid #323840;
+      color: #C4C7C5;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .play-chip.active {
+      background: rgba(1, 135, 95, 0.25);
+      border-color: #00E676;
+      color: #00E676;
+      font-weight: 700;
+    }
+
+    .play-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .app-card {
+      background: #1E2227;
+      border: 1px solid #2D3239;
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .app-card:hover {
+      transform: translateY(-2px);
+      border-color: #00E676;
+    }
+
+    .app-card-top {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .app-icon-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .app-title { font-weight: 700; font-size: 16px; margin-bottom: 3px; }
+    .app-meta { font-size: 12px; color: #9AA0A6; }
+    .app-desc { font-size: 13px; color: #C4C7C5; line-height: 1.5; }
+
+    .launch-btn {
+      width: 100%;
+      background: #01875F;
+      color: #FFF;
+      border: none;
+      padding: 9px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .launch-btn:hover { background: #02A877; }
+
+    /* ============================
+       3. 내장 미니앱 실행 모달 (무설치 실행기)
+       ============================ */
+    #miniapp-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .miniapp-window {
+      background: #1E2227;
+      border: 1.5px solid #00E676;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .miniapp-header {
+      background: #14171A;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2D3239;
+      font-weight: 700;
+    }
+
+    .close-modal-btn {
+      background: #FF4D4D;
+      color: #FFF;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .miniapp-body {
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* 그림판 / 메모장 / 반응속도 게임 스타일 */
+    #paint-canvas {
+      background: #FFFFFF;
+      border-radius: 10px;
+      width: 100%;
+      height: 300px;
+      touch-action: none;
+      cursor: crosshair;
+      display: block;
+    }
+
+    .paint-tools {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .reflex-box {
+      height: 220px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* 모바일/태블릿 좁은 화면 대응 */
+    @media (max-width: 680px) {
+      .channel-sidebar { width: 150px; }
+      .server-bar { width: 54px; }
+      .server-icon { width: 38px; height: 38px; font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 앱 전환 바 -->
+  <div class="top-switcher">
+    <div class="brand-title">⚡ WebHub OS</div>
+    <div class="mode-tabs">
+      <button class="mode-btn active-discord" id="btn-mode-discord" onclick="switchMainApp('discord')">💬 WebCord</button>
+      <button class="mode-btn" id="btn-mode-play" onclick="switchMainApp('play')">▶️ Play Hub</button>
+    </div>
+  </div>
+
+  <!-- 1. WebCord 화면 -->
+  <div class="app-view active" id="view-discord">
+    <!-- 서버 리스트 -->
+    <div class="server-bar" id="server-bar"></div>
+
+    <!-- 채널 리스트 -->
+    <div class="channel-sidebar">
+      <div class="server-header" id="current-server-name">메인 라운지</div>
+      <div class="channel-list">
+        <div class="channel-category">
+          <span>채팅 채널</span>
+          <button class="add-ch-btn" title="채널 추가" onclick="addChannel()">+</button>
+        </div>
+        <div id="channel-list-items"></div>
+      </div>
+      <div class="user-profile-bar">
+        <div class="user-info">
+          <div class="avatar-dot" id="my-avatar-letter">나</div>
+          <span id="my-nickname-label" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">익명유저</span>
+        </div>
+        <button class="nick-btn" onclick="changeNickname()">변경</button>
+      </div>
+    </div>
+
+    <!-- 채팅창 -->
+    <div class="chat-main">
+      <div class="chat-header">
+        <span id="current-channel-title"># 일반</span>
+        <span style="font-size:12px; color:#949BA4;">로컬 저장 활성화됨</span>
+      </div>
+      <div class="messages-area" id="messages-area"></div>
+      <div class="chat-input-box">
+        <div class="chat-input-inner">
+          <input type="text" id="chat-input" placeholder="#일반에 메시지 보내기..." onkeyup="if(event.key==='Enter') sendMessage()">
+          <button class="send-msg-btn" onclick="sendMessage()">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Play Hub (무설치 웹앱 스토어) 화면 -->
+  <div class="app-view" id="view-play">
+    <div class="play-container">
+      <div class="play-search-bar">
+        <input type="text" class="play-search-input" id="play-search" placeholder="무설치 웹앱 및 게임 검색..." oninput="renderStoreApps()">
+        <button class="play-add-btn" onclick="addCustomWebApp()">+ 웹 바로가기 추가</button>
+      </div>
+
+      <div class="play-chips">
+        <button class="play-chip active" onclick="filterStore('all', this)">전체</button>
+        <button class="play-chip" onclick="filterStore('tool', this)">생산성 · 도구</button>
+        <button class="play-chip" onclick="filterStore('game', this)">미니 게임</button>
+        <button class="play-chip" onclick="filterStore('custom', this)">내 바로가기</button>
+      </div>
+
+      <div class="play-grid" id="play-grid"></div>
+    </div>
+  </div>
+
+  <!-- 내장 미니앱 실행기 모달 -->
+  <div id="miniapp-modal">
+    <div class="miniapp-window">
+      <div class="miniapp-header">
+        <span id="miniapp-title">앱 실행 중</span>
+        <button class="close-modal-btn" onclick="closeMiniApp()">닫기</button>
+      </div>
+      <div class="miniapp-body" id="miniapp-body"></div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    /* ====================================
+       상단 앱 전환 (WebCord <-> Play Hub)
+       ==================================== */
+    function switchMainApp(app) {
+      document.getElementById('view-discord').classList.toggle('active', app === 'discord');
+      document.getElementById('view-play').classList.toggle('active', app === 'play');
+
+      const btnD = document.getElementById('btn-mode-discord');
+      const btnP = document.getElementById('btn-mode-play');
+      btnD.className = 'mode-btn' + (app === 'discord' ? ' active-discord' : '');
+      btnP.className = 'mode-btn' + (app === 'play' ? ' active-play' : '');
+    }
+
+    /* ====================================
+       1. WebCord 로직
+       ==================================== */
+    const defaultServers = {
+      lounge: { name: '메인 라운지', icon: '🏠', channels: ['일반', '자유잡담', '메모방'] },
+      veiled: { name: '베일드 제국', icon: '🌸', channels: ['세계관-회의', '9부대-작전', '카페-창고'] },
+      game:   { name: '플레이 존', icon: '🎮', channels: ['게임-기록', '추천-웹앱'] }
+    };
+
+    let servers = JSON.parse(localStorage.getItem('webcord_servers')) || defaultServers;
+    let messages = JSON.parse(localStorage.getItem('webcord_messages')) || {
+      'lounge_일반': [
+        { author: '시스템', text: 'WebCord에 오신 걸 환영합니다! 채널을 추가하거나 메시지를 입력해 보세요.', time: '안내' }
+      ],
+      'veiled_세계관-회의': [
+        { author: '매니저', text: '베일드 제국 전용 회의 채널입니다. 떠오르는 아이디어를 여기 남겨두세요!', time: '안내' }
+      ]
+    };
+
+    let myNick = localStorage.getItem('webcord_nick') || '디렉터';
+    let currentServerId = 'lounge';
+    let currentChannel = '일반';
+
+    function initWebCord() {
+      document.getElementById('my-nickname-label').innerText = myNick;
+      document.getElementById('my-avatar-letter').innerText = myNick.charAt(0);
+      renderServers();
+      renderChannels();
+      renderMessages();
+    }
+
+    function renderServers() {
+      const bar = document.getElementById('server-bar');
+      bar.innerHTML = '';
+      Object.keys(servers).forEach(id => {
+        const s = servers[id];
+        const div = document.createElement('div');
+        div.className = 'server-icon' + (id === currentServerId ? ' active' : '');
+        div.title = s.name;
+        div.innerText = s.icon;
+        div.onclick = () => {
+          currentServerId = id;
+          currentChannel = servers[id].channels[0];
+          renderServers();
+          renderChannels();
+          renderMessages();
+        };
+        bar.appendChild(div);
+      });
+    }
+
+    function renderChannels() {
+      const s = servers[currentServerId];
+      document.getElementById('current-server-name').innerText = s.name;
+      const list = document.getElementById('channel-list-items');
+      list.innerHTML = '';
+      s.channels.forEach(ch => {
+        const div = document.createElement('div');
+        div.className = 'channel-item' + (ch === currentChannel ? ' active' : '');
+        div.innerHTML = `<span>#</span> ${escapeHtml(ch)}`;
+        div.onclick = () => {
+          currentChannel = ch;
+          renderChannels();
+          renderMessages();
+        };
+        list.appendChild(div);
+      });
+    }
+
+    function renderMessages() {
+      document.getElementById('current-channel-title').innerText = '# ' + currentChannel;
+      document.getElementById('chat-input').placeholder = `#${currentChannel}에 메시지 보내기...`;
+
+      const key = `${currentServerId}_${currentChannel}`;
+      const list = messages[key] || [];
+      const area = document.getElementById('messages-area');
+      area.innerHTML = '';
+
+      if (list.length === 0) {
+        area.innerHTML = `<div style="color:#949BA4; font-size:14px;">#${escapeHtml(currentChannel)} 채널의 첫 메시지를 남겨보세요!</div>`;
+        return;
+      }
+
+      list.forEach(m => {
+        const row = document.createElement('div');
+        row.className = 'msg-row';
+        row.innerHTML = `
+          <div class="msg-avatar">${escapeHtml(m.author.charAt(0))}</div>
+          <div class="msg-content-wrap">
+            <div class="msg-meta">
+              <span class="msg-author">${escapeHtml(m.author)}</span>
+              <span class="msg-time">${escapeHtml(m.time)}</span>
+            </div>
+            <div class="msg-text">${escapeHtml(m.text)}</div>
+          </div>
+        `;
+        area.appendChild(row);
+      });
+      area.scrollTop = area.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const key = `${currentServerId}_${currentChannel}`;
+      if (!messages[key]) messages[key] = [];
+
+      const now = new Date();
+      const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      messages[key].push({ author: myNick, text, time });
+
+      localStorage.setItem('webcord_messages', JSON.stringify(messages));
+      input.value = '';
+      renderMessages();
+    }
+
+    function addChannel() {
+      const name = prompt('새 채널 이름을 입력하세요 (예: 아이디어-창고):');
+      if (!name || !name.trim()) return;
+      const clean = name.trim().replace(/\s+/g, '-');
+      if (!servers[currentServerId].channels.includes(clean)) {
+        servers[currentServerId].channels.push(clean);
+        localStorage.setItem('webcord_servers', JSON.stringify(servers));
+      }
+      currentChannel = clean;
+      renderChannels();
+      renderMessages();
+    }
+
+    function changeNickname() {
+      const next = prompt('사용할 닉네임을 입력하세요:', myNick);
+      if (!next || !next.trim()) return;
+      myNick = next.trim();
+      localStorage.setItem('webcord_nick', myNick);
+      document.getElementById('my-nickname-label').innerText = myNick;
+      document.getElementById('my-avatar-letter').innerText = myNick.charAt(0);
+    }
+
+    // 다른 탭과 실시간 동기화
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'webcord_messages') {
+        messages = JSON.parse(e.newValue) || {};
+        renderMessages();
+      }
+    });
+
+    /* ====================================
+       2. Play Hub (무설치 웹앱 스토어) 로직
+       ==================================== */
+    const builtInApps = [
+      {
+        id: 'paint',
+        name: '미니 드로잉 패드',
+        cat: 'tool',
+        rating: '4.9 ★ · 무설치 실행',
+        icon: '🎨',
+        bg: '#3B2854',
+        desc: '태블릿 펜이나 마우스로 바로 낙서하고 캐릭터 러프를 그릴 수 있는 초경량 그림판.'
+      },
+      {
+        id: 'notes',
+        name: '퀵 시크릿 메모장',
+        cat: 'tool',
+        rating: '4.8 ★ · 자동 저장',
+        icon: '📝',
+        bg: '#1F3A3D',
+        desc: '창을 닫아도 내용이 사라지지 않고 브라우저에 안전하게 자동 저장되는 빠른 메모장.'
+      },
+      {
+        id: 'reflex',
+        name: '0.1초 반응속도 게임',
+        cat: 'game',
+        rating: '4.9 ★ · 미니 게임',
+        icon: '⚡',
+        bg: '#4A3418',
+        desc: '화면이 초록색으로 바뀌는 순간 즉시 터치! 내 최고 반응속도(ms)에 도전해 보세요.'
+      }
+    ];
+
+    let customApps = JSON.parse(localStorage.getItem('playhub_custom_apps')) || [];
+    let currentStoreCat = 'all';
+
+    function filterStore(cat, btn) {
+      currentStoreCat = cat;
+      document.querySelectorAll('.play-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderStoreApps();
+    }
+
+    function renderStoreApps() {
+      const keyword = document.getElementById('play-search').value.trim().toLowerCase();
+      const grid = document.getElementById('play-grid');
+      const allApps = [...builtInApps, ...customApps];
+
+      const filtered = allApps.filter(app => {
+        const matchCat = currentStoreCat === 'all' || app.cat === currentStoreCat;
+        const matchText = app.name.toLowerCase().includes(keyword) || app.desc.toLowerCase().includes(keyword);
+        return matchCat && matchText;
+      });
+
+      grid.innerHTML = '';
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="color:#9AA0A6;">검색 결과가 없습니다.</div>';
+        return;
+      }
+
+      filtered.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div>
+            <div class="app-card-top">
+              <div class="app-icon-box" style="background:${app.bg};">${app.icon}</div>
+              <div>
+                <div class="app-title">${escapeHtml(app.name)}</div>
+                <div class="app-meta">${escapeHtml(app.rating)}</div>
+              </div>
+            </div>
+            <p class="app-desc" style="margin-top:12px;">${escapeHtml(app.desc)}</p>
+          </div>
+          <button class="launch-btn" onclick="openStoreApp('${app.id}')">▶ 설치 없이 바로 열기</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function addCustomWebApp() {
+      const name = prompt('추가할 웹앱 이름 (예: 베일드 제국 아카이브):');
+      if (!name || !name.trim()) return;
+      const url = prompt('연결할 웹 주소(URL)를 입력하세요 (https:// 포함):', 'https://');
+      if (!url || !url.trim()) return;
+
+      customApps.push({
+        id: 'custom_' + Date.now(),
+        name: name.trim(),
+        cat: 'custom',
+        rating: '웹 바로가기 · 새 창 실행',
+        icon: '🌐',
+        bg: '#1E3A5F',
+        desc: url.trim(),
+        url: url.trim()
+      });
+      localStorage.setItem('playhub_custom_apps', JSON.stringify(customApps));
+      renderStoreApps();
+    }
+
+    /* ====================================
+       3. 내장 미니앱 실행기
+       ==================================== */
+    function openStoreApp(id) {
+      const custom = customApps.find(a => a.id === id);
+      if (custom) {
+        window.open(custom.url, '_blank');
+        return;
+      }
+
+      const modal = document.getElementById('miniapp-modal');
+      const title = document.getElementById('miniapp-title');
+      const body = document.getElementById('miniapp-body');
+      modal.style.display = 'flex';
+
+      if (id === 'paint') {
+        title.innerText = '🎨 미니 드로잉 패드';
+        body.innerHTML = `
+          <div class="paint-tools">
+            <input type="color" id="paint-color" value="#1E1F22" style="width:40px; height:32px; border:none;">
+            <input type="range" id="paint-size" min="2" max="20" value="4">
+            <button class="launch-btn" style="width:auto; padding:6px 14px;" onclick="clearPaint()">전체 지우기</button>
+          </div>
+          <canvas id="paint-canvas"></canvas>
+        `;
+        setupPaintCanvas();
+      } else if (id === 'notes') {
+        title.innerText = '📝 퀵 시크릿 메모장';
+        const saved = localStorage.getItem('playhub_quick_note') || '';
+        body.innerHTML = `
+          <textarea id="quick-note-area" style="width:100%; height:260px; background:#14171A; color:#F2F3F5; border:1px solid #323840; border-radius:10px; padding:14px; font-size:14px; line-height:1.6; outline:none;" placeholder="여기에 적으면 실시간 자동 저장됩니다...">${escapeHtml(saved)}</textarea>
+          <div style="font-size:12px; color:#00E676; margin-top:8px;">✔ 입력 즉시 브라우저에 자동 저장됨</div>
+        `;
+        document.getElementById('quick-note-area').addEventListener('input', (e) => {
+          localStorage.setItem('playhub_quick_note', e.target.value);
+        });
+      } else if (id === 'reflex') {
+        title.innerText = '⚡ 0.1초 반응속도 게임';
+        body.innerHTML = `
+          <div id="reflex-box" class="reflex-box" style="background:#2B2D31;" onclick="handleReflexClick()">
+            터치해서 시작하기!
+          </div>
+          <div id="reflex-best" style="margin-top:12px; text-align:center; font-size:14px; color:#00E676;">
+            최고 기록: ${localStorage.getItem('reflex_best') || '기록 없음'}
+          </div>
+        `;
+        reflexState = 'idle';
+      }
+    }
+
+    function closeMiniApp() {
+      document.getElementById('miniapp-modal').style.display = 'none';
+      clearTimeout(reflexTimer);
+    }
+
+    // 드로잉 패드 로직 (마우스 + 태블릿 터치 지원)
+    function setupPaintCanvas() {
+      const canvas = document.getElementById('paint-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = 300;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let drawing = false;
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+
+      function start(e) {
+        drawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      }
+      function move(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.strokeStyle = document.getElementById('paint-color').value;
+        ctx.lineWidth = document.getElementById('paint-size').value;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+      function end() { drawing = false; }
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      canvas.addEventListener('touchstart', start);
+      canvas.addEventListener('touchmove', move, { passive: false });
+      canvas.addEventListener('touchend', end);
+    }
+
+    function clearPaint() {
+      const canvas = document.getElementById('paint-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 반응속도 게임 로직
+    let reflexState = 'idle';
+    let reflexStart = 0;
+    let reflexTimer = null;
+
+    function handleReflexClick() {
+      const box = document.getElementById('reflex-box');
+      if (reflexState === 'idle' || reflexState === 'done') {
+        reflexState = 'waiting';
+        box.style.background = '#B83232';
+        box.innerText = '초록색으로 바뀌면 바로 누르세요...';
+        const delay = 1200 + Math.random() * 2500;
+        reflexTimer = setTimeout(() => {
+          reflexState = 'ready';
+          reflexStart = Date.now();
+          box.style.background = '#01875F';
+          box.innerText = '지금 터치!!';
+        }, delay);
+      } else if (reflexState === 'waiting') {
+        clearTimeout(reflexTimer);
+        reflexState = 'done';
+        box.style.background = '#4A3418';
+        box.innerText = '너무 빨랐어요! 😅 다시 누르면 재시작';
+      } else if (reflexState === 'ready') {
+        const ms = Date.now() - reflexStart;
+        reflexState = 'done';
+        box.style.background = '#5865F2';
+        box.innerText = `${ms} ms! ⚡ (다시 누르면 재도전)`;
+        const prev = Number(localStorage.getItem('reflex_best_num') || 99999);
+        if (ms < prev) {
+          localStorage.setItem('reflex_best_num', ms);
+          localStorage.setItem('reflex_best', ms + ' ms');
+          document.getElementById('reflex-best').innerText = '최고 기록: ' + ms + ' ms (신기록!)';
+        }
+      }
+    }
+
+    initWebCord();
+    renderStoreApps();
+  </script>
+</body>
+</html>
